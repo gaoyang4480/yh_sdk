@@ -148,14 +148,20 @@ func (agent *ConvertAgent) OfficeToOFD(srcFilePath, outFilePath string, metaData
 	if err != nil {
 		return err
 	}
-	metaDataStrPointer := C.CString(metaDataStr)
-	defer C.free(unsafe.Pointer(metaDataStrPointer))
+	var metaDataStrPointer *C.char
+	if len(metaDataStr) > 0 {
+		metaDataStrPointer = C.CString(metaDataStr)
+		defer C.free(unsafe.Pointer(metaDataStrPointer))
+	}
 	semanticsStr, err := encodeData(semantics)
 	if err != nil {
 		return err
 	}
-	semanticsStrPointer := C.CString(semanticsStr)
-	defer C.free(unsafe.Pointer(semanticsStrPointer))
+	var semanticsStrPointer *C.char
+	if len(semanticsStr) > 0 {
+		semanticsStrPointer = C.CString(semanticsStr)
+		defer C.free(unsafe.Pointer(semanticsStrPointer))
+	}
 	ret, _, _ := syscall.Syscall6(proc, uintptr(5), uintptr(unsafe.Pointer(agent.agentPtr)), uintptr(unsafe.Pointer(srcFilePathPointer)),
 		uintptr(unsafe.Pointer(outFilePathPointer)), uintptr(unsafe.Pointer(metaDataStrPointer)), uintptr(unsafe.Pointer(semanticsStrPointer)), 0)
 	if ret != C.YH_OK {

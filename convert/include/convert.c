@@ -1,11 +1,22 @@
 #include "convert.h"
+#include <dlfcn.h>
 
+///////////////////////////////////////////////////////////////////////////////////
+//
+// 动态库C接口函数名
+//
+///////////////////////////////////////////////////////////////////////////////////
 #define YH_INITSDK_FUNC_NAME "YH_InitSDK"
 #define YH_FINALIZESDK_FUNC_NAME "YH_FinalizeSDK"
 #define YH_INITAGENT_FUNC_NAME "YH_InitAgent"
 #define YH_FINALIZEAGENT_FUNC_NAME "YH_FinalizeAgent"
 #define YH_OFFICETOOFD_FUNC_NAME "YH_OfficeToOFD"
 
+///////////////////////////////////////////////////////////////////////////////////
+//
+// 动态库C接口函数声明
+//
+///////////////////////////////////////////////////////////////////////////////////
 typedef YH_STATUS (*YH_INITSDK_FUNC)();
 
 typedef void (*YH_FINALIZESDK_FUNC)();
@@ -41,9 +52,8 @@ void UnloadConvert(YHHModule_t hModule) {
     }
 }
 
-YH_STATUS InitSDK() {
+YH_STATUS InitSDK(YHHModule_t hModule) {
     YH_STATUS status = YH_OK;
-    char *error = NULL;
     YHHandleSym_t ressym = NULL;
     YH_INITSDK_FUNC initSDKFunc = NULL;
 
@@ -73,8 +83,7 @@ YH_STATUS InitSDK() {
     return status;
 }
 
-void FinalizeSDK() {
-    char *error = NULL;
+void FinalizeSDK(YHHModule_t hModule) {
     YHHandleSym_t ressym = NULL;
     YH_FINALIZESDK_FUNC finalizeSDKFunc = NULL;
 
@@ -96,15 +105,81 @@ void FinalizeSDK() {
     } while (0);
 }
 
-YH_CONVERT_AGENT InitAgent(int convertAgentType, const char *baseUrl) {
+YH_CONVERT_AGENT InitAgent(YHHModule_t hModule, int convertAgentType, const char *baseUrl) {
+    YH_CONVERT_AGENT agentPtr = NULL;
+    YHHandleSym_t ressym = NULL;
+    YH_INITAGENT_FUNC initAgentFunc = NULL;
 
+    do {
+        if (NULL == hModule) {
+            break;
+        }
+
+        if (GetFuncAddress(hModule, YH_INITAGENT_FUNC_NAME, &ressym)) {
+            break;
+        }
+
+        initAgentFunc = (YH_INITAGENT_FUNC) ressym;
+        if (initAgentFunc == NULL) {
+            break;
+        }
+
+        agentPtr = initAgentFunc();
+    } while (0);
+
+    return agentPtr;
 }
 
-void FinalizeAgent(YH_CONVERT_AGENT convertAgent) {
+void FinalizeAgent(YHHModule_t hModule, YH_CONVERT_AGENT convertAgent) {
+    YHHandleSym_t ressym = NULL;
+    YH_FINALIZEAGENT_FUNC finalizeAgentFunc = NULL;
 
+    do {
+        if (NULL == hModule) {
+            break;
+        }
+
+        if (GetFuncAddress(hModule, YH_FINALIZEAGENT_FUNC_NAME, &ressym)) {
+            break;
+        }
+
+        finalizeAgentFunc = (YH_FINALIZEAGENT_FUNC) ressym;
+        if (finalizeAgentFunc == NULL) {
+            break;
+        }
+
+        finalizeAgentFunc(convertAgent);
+    } while (0);
 }
 
-YH_STATUS OfficeToOFD(YH_CONVERT_AGENT convertAgent, const char *srcFilePath, const char *outFilePath,
+YH_STATUS OfficeToOFD(YHHModule_t hModule, YH_CONVERT_AGENT convertAgent, const char *srcFilePath, const char *outFilePath,
                           const char *metasStr, const char *semanticsStr) {
+    YH_STATUS status = YH_OK;
+    YHHandleSym_t ressym = NULL;
+    YH_OFFICETOOFD_FUNC officeToOFDFunc = NULL;
 
+    do {
+        if (NULL == hModule) {
+            status = YH_ERROR;
+            break;
+        }
+
+        if (GetFuncAddress(hModule, YH_OFFICETOOFD_FUNC_NAME, &ressym)) {
+            status = YH_ERROR;
+            break;
+        }
+
+        officeToOFDFunc = (YH_OFFICETOOFD_FUNC) ressym;
+        if (officeToOFDFunc == NULL) {
+            status = YH_ERROR;
+            break;
+        }
+
+        status = officeToOFDFunc(convertAgent, srcFilePath, outFilePath, metasStr, semanticsStr);
+        if (status != YH_OK) {
+            break;
+        }
+    } while (0);
+
+    return status;
 }
