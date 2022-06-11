@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"yh_sdk"
+	"github.com/gaoyang4480/yh_sdk"
 )
 
 var (

@@ -9,9 +9,9 @@ import "C"
 
 import (
 	"errors"
+	"github.com/gaoyang4480/yh_sdk/util"
 	"syscall"
 	"unsafe"
-	"yh_sdk/util"
 )
 
 const (

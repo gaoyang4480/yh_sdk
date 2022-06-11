@@ -1,6 +1,6 @@
 package yh_sdk
 
-import "yh_sdk/convert"
+import "github.com/gaoyang4480/yh_sdk/convert"
 
 // IConvertAgent 转换代理接口.
 type IConvertAgent interface {
