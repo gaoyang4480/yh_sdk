@@ -1,1 +1,1 @@
-module "yh_sdk"
+module "github.com/gaoyang4480/yh_sdk"
