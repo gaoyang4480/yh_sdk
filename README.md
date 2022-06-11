@@ -1,1 +1,1 @@
-# 友虹转换套件Golang SDK
+# 友虹科技转换套件Golang SDK
