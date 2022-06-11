@@ -6,7 +6,7 @@ package convert
 #cgo linux LDFLAGS: -ldl
 #cgo CFLAGS: -I ./include
 #cgo CPPFLAGS: -I ./include
-#include "convert.h"
+#include "convert.c"
 */
 import "C"
 

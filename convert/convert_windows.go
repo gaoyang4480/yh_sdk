@@ -23,19 +23,27 @@ const (
 	officeToOFDFuncName   = "YH_OfficeToOFD"
 )
 
+var (
+	globalDll *util.YHDll
+)
+
 // ConvertAgent 转换代理.
 type ConvertAgent struct {
-	dll      *util.YHDll
 	agentPtr C.YH_CONVERT_AGENT
 }
 
+var _ IConvertAgent = (*ConvertAgent)(nil)
+
 // LoadConvert 加载转换动态库.
-func (agent *ConvertAgent) LoadConvert(convertDllFilePath string) error {
+func LoadConvert(convertDllFilePath string) error {
+	if globalDll != nil {
+		return nil
+	}
 	if len(convertDllFilePath) == 0 {
 		return errors.New("convert dll file path is empty")
 	}
-	agent.dll = &util.YHDll{}
-	err := agent.dll.LoadDll(convertDllFilePath)
+	globalDll = &util.YHDll{}
+	err := globalDll.LoadDll(convertDllFilePath)
 	if err != nil {
 		return errors.New("load convert dll error")
 	}
@@ -43,15 +51,18 @@ func (agent *ConvertAgent) LoadConvert(convertDllFilePath string) error {
 }
 
 // UnloadConvert 卸载加载转换动态库.
-func (agent *ConvertAgent) UnloadConvert() {
-	if agent.dll != nil {
-		_ = agent.dll.UnLoadDll()
+func UnloadConvert() {
+	if globalDll != nil {
+		_ = globalDll.UnLoadDll()
 	}
 }
 
 // InitSDK 初始化.
 func (agent *ConvertAgent) InitSDK() error {
-	proc, err := agent.dll.GetProcAddress(initSDKFuncName)
+	if globalDll == nil {
+		return errors.New("the convert dynamic library is not loaded")
+	}
+	proc, err := globalDll.GetProcAddress(initSDKFuncName)
 	if err != nil {
 		return err
 	}
@@ -64,7 +75,10 @@ func (agent *ConvertAgent) InitSDK() error {
 
 // FinalizeSDK 销毁.
 func (agent *ConvertAgent) FinalizeSDK() error {
-	proc, err := agent.dll.GetProcAddress(finalizeSDKFuncName)
+	if globalDll == nil {
+		return errors.New("the convert dynamic library is not loaded")
+	}
+	proc, err := globalDll.GetProcAddress(finalizeSDKFuncName)
 	if err != nil {
 		return err
 	}
@@ -74,7 +88,10 @@ func (agent *ConvertAgent) FinalizeSDK() error {
 
 // InitAgent 初始化代理.
 func (agent *ConvertAgent) InitAgent(convertAgentType ConvertAgentType, convertServiceUrl string) (C.YH_CONVERT_AGENT, error) {
-	proc, err := agent.dll.GetProcAddress(initAgentFuncName)
+	if globalDll == nil {
+		return nil, errors.New("the convert dynamic library is not loaded")
+	}
+	proc, err := globalDll.GetProcAddress(initAgentFuncName)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +109,10 @@ func (agent *ConvertAgent) InitAgent(convertAgentType ConvertAgentType, convertS
 
 // FinalizeAgent 销毁代理.
 func (agent *ConvertAgent) FinalizeAgent(agentPtr C.YH_CONVERT_AGENT) error {
-	proc, err := agent.dll.GetProcAddress(finalizeAgentFuncName)
+	if globalDll == nil {
+		return errors.New("the convert dynamic library is not loaded")
+	}
+	proc, err := globalDll.GetProcAddress(finalizeAgentFuncName)
 	if err != nil {
 		return err
 	}
@@ -105,19 +125,18 @@ func (agent *ConvertAgent) Finalize() error {
 	if err = agent.FinalizeAgent(agent.agentPtr); err != nil {
 		return err
 	}
-	if err = agent.FinalizeSDK(); err != nil {
-		return err
-	}
-	agent.UnloadConvert()
 	return nil
 }
 
 // OfficeToOFD 将单个办公文件（Office文件如doc等、版式文件如pdf、xps、ceb等）转换为OFD文件并可附加元数据和语义树.
 func (agent *ConvertAgent) OfficeToOFD(srcFilePath, outFilePath string, metaData MetaData, semantics Semantics) error {
+	if globalDll == nil {
+		return errors.New("the convert dynamic library is not loaded")
+	}
 	if agent.agentPtr == nil {
 		return errors.New("the agent is not initialized")
 	}
-	proc, err := agent.dll.GetProcAddress(officeToOFDFuncName)
+	proc, err := globalDll.GetProcAddress(officeToOFDFuncName)
 	if err != nil {
 		return err
 	}

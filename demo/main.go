@@ -22,7 +22,13 @@ func init() {
 
 func main() {
 	flag.Parse()
-	agent, err := yh_sdk.NewHttpAgent(convertDllFilePath, convertServiceUrl)
+	if err := yh_sdk.InitSDK(convertDllFilePath); err != nil {
+		panic(err)
+	}
+	defer func() {
+		yh_sdk.FinalizeSDK()
+	}()
+	agent, err := yh_sdk.NewHttpAgent(convertServiceUrl)
 	if err != nil {
 		panic(err)
 	}

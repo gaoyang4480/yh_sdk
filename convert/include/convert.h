@@ -6,15 +6,14 @@
 #include <string.h>
 //#include <dlfcn.h>
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//typedef void*			HMODULE;
-//typedef HMODULE			YHHModule_t;
-//typedef int				YHStatus;
-//typedef HMODULE			YHHandleSym_t;
-//#endif
+typedef void*			HMODULE;
+typedef HMODULE			YHHModule_t;
+typedef int				YHStatus;
+typedef HMODULE			YHHandleSym_t;
 
 typedef void *YH_CONVERT_AGENT;
 
@@ -22,8 +21,23 @@ typedef void *YH_CONVERT_AGENT;
 #define YH_ERROR 1
 typedef int YH_STATUS;
 
-//#ifdef __cplusplus
-//}
-//#endif
+extern YHHModule_t LoadConvert(const char *oesDllFilePath);
+
+extern void UnloadConvert(YHHModule_t hModule);
+
+extern YH_STATUS InitSDK();
+
+extern void FinalizeSDK();
+
+extern YH_CONVERT_AGENT InitAgent(int convertAgentType, const char *baseUrl);
+
+extern void FinalizeAgent(YH_CONVERT_AGENT convertAgent);
+
+extern YH_STATUS OfficeToOFD(YH_CONVERT_AGENT convertAgent, const char *srcFilePath, const char *outFilePath,
+                          const char *metasStr, const char *semanticsStr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // OES_H
