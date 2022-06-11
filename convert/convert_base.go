@@ -10,6 +10,11 @@ package convert
 */
 import "C"
 
+import (
+	"errors"
+	"unsafe"
+)
+
 // ConvertAgent 转换代理.
 type ConvertAgent struct {
 	agentPtr C.YH_CONVERT_AGENT
@@ -41,7 +46,7 @@ func LoadConvert(convertDllFilePath string) error {
 // UnloadConvert 卸载加载转换动态库.
 func UnloadConvert() {
 	if globalDll != nil {
-		_ = UnloadConvert(globalDll)
+		C.UnloadConvert(globalDll)
 	}
 }
 
@@ -88,7 +93,7 @@ func (agent *ConvertAgent) FinalizeAgent(agentPtr C.YH_CONVERT_AGENT) error {
 	if globalDll == nil {
 		return errors.New("the convert dynamic library is not loaded")
 	}
-	C.FinalizeAgent(agentPtr)
+	C.FinalizeAgent(globalDll, agentPtr)
 	return nil
 }
 

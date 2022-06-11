@@ -39,7 +39,7 @@ YHStatus GetFuncAddress(YHHModule_t hModule, const char *procName, YHHandleSym_t
 }
 
 YHHModule_t LoadConvert(const char *oesDllFilePath) {
-    hModule = dlopen(oesDllFilePath, RTLD_LAZY);
+    YHHModule_t hModule = dlopen(oesDllFilePath, RTLD_LAZY);
     if (!hModule) {
         return NULL;
     }
@@ -59,18 +59,18 @@ YH_STATUS InitSDK(YHHModule_t hModule) {
 
     do {
         if (NULL == hModule) {
-            status = OES_CANCEL;
+            status = YH_ERROR;
             break;
         }
 
         if (GetFuncAddress(hModule, YH_INITSDK_FUNC_NAME, &ressym)) {
-            status = OES_NO_FUNC;
+            status = YH_ERROR;
             break;
         }
 
         initSDKFunc = (YH_INITSDK_FUNC) ressym;
         if (initSDKFunc == NULL) {
-            status = OES_NO_FUNC;
+            status = YH_ERROR;
             break;
         }
 
@@ -124,7 +124,7 @@ YH_CONVERT_AGENT InitAgent(YHHModule_t hModule, int convertAgentType, const char
             break;
         }
 
-        agentPtr = initAgentFunc();
+        agentPtr = initAgentFunc(convertAgentType, baseUrl);
     } while (0);
 
     return agentPtr;
